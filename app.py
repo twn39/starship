@@ -229,15 +229,15 @@ with gr.Blocks() as app:
                 with gr.Accordion('代码助手', open=True):
                     code_type = gr.Dropdown(
                         label='代码类型',
-                        choices=['Javascript', 'Typescript', 'Python', 'C++', 'PHP', 'Java'],
+                        choices=['Javascript', 'Typescript', 'Python', "GO", 'C++', 'PHP', 'Java', 'C#', "C", "Kotlin", "Bash"],
                         value='Javascript',
                     )
                     code = gr.Textbox(label='代码', lines=10, value=None)
                     with gr.Row(variant='panel'):
+                        function_gen_btn = gr.Button('代码生成', variant='primary')
                         explain_code_btn = gr.Button('解释代码')
                         optimize_code_btn = gr.Button('优化代码')
                         debug_code_btn = gr.Button('错误修复')
-                        function_gen_btn = gr.Button('函数生成')
             explain_code_btn.click(fn=explain_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
             optimize_code_btn.click(fn=optimize_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
             debug_code_btn.click(fn=debug_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
