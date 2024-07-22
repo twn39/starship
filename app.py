@@ -109,6 +109,50 @@ def function_gen(_code_type: str, _code: str, _chat):
         yield response_message
 
 
+def translate_doc(_language_input, _language_output, _doc, _chat):
+    prompt = f'''
+你是一位精通{_language_output}的专业翻译，尤其擅长将专业学术论文翻译成浅显易懂的科普文章。我希望你能帮我将以下{_language_input}论文段落翻译成{_language_output}，风格与科普杂志的{_language_output}版相似。
+
+规则：
+1. 翻译时要准确传达原文的事实和背景。
+2. 即使上意译也要保留原始段落格式，以及保留术语，例如 FLAC，JPEG 等。保留公司缩写，例如 Microsoft, Amazon 等。
+3. 同时要保留引用的论文，例如 [20] 这样的引用。
+4. 对于 Figure 和 Table，翻译的同时保留原有格式，例如：“Figure 1:” 翻译为 “图 1: ”，“Table 1: ” 翻译为：“表 1: ”。
+5. 全角括号换成半角括号，并在左括号前面加半角空格，右括号后面加半角空格。
+6. 输入格式为 Markdown 格式，输出格式也必须保留原始 Markdown 格式
+7. 以下是常见的 AI 相关术语词汇对应表：
+    Transformer -> Transformer
+    LLM/Large Language Model -> 大语言模型
+    Generative AI -> 生成式 AI
+
+策略：
+分成两次翻译，并且打印每一次结果：
+1. 第一次，根据{_language_input}内容直译为{_language_output}，保持原有格式，不要遗漏任何信息，并且打印直译结果
+2. 第二次，根据第一次直译的结果重新意译，遵守原意的前提下让内容更通俗易懂、符合{_language_output}表达习惯，但要保留原有格式不变
+
+返回格式如下，"<doc>xxx</doc>" 表示占位符：
+**直译**: 
+
+<doc>直译结果</doc>
+
+**意译**:
+
+<doc>意译结果</doc>
+'''
+
+    if _chat is None:
+        _chat = init_chat()
+    print('????', prompt)
+    chat_messages = [
+        SystemMessage(content=prompt),
+        HumanMessage(content=_doc),
+    ]
+    response_message = ''
+    for chunk in _chat.stream(chat_messages):
+        response_message = response_message + chunk.content
+        yield response_message
+
+
 with gr.Blocks() as app:
     with gr.Tab('聊天'):
         chat_engine = gr.State(value=None)
@@ -121,7 +165,7 @@ with gr.Blocks() as app:
                     textbox=gr.MultimodalTextbox(lines=1),
                     additional_inputs=[chat_engine]
                 )
-            with gr.Column(scale=1, min_width=300):
+            with gr.Column(scale=1, min_width=300) as model_panel:
                 with gr.Accordion('模型参数设置', open=True):
                     with gr.Column():
                         provider = gr.Dropdown(
@@ -179,25 +223,53 @@ with gr.Blocks() as app:
     with gr.Tab('代码优化'):
         chat_engine = gr.State(value=None)
         with gr.Row():
-            with gr.Column(scale=1):
+            with gr.Column(scale=2):
                 with gr.Row(variant="panel"):
                     code_result = gr.Markdown(label='解释结果', value=None)
             with gr.Column(scale=1):
-                code_type = gr.Dropdown(
-                    label='代码类型',
-                    choices=['Javascript', 'Typescript', 'Python', 'C++', 'PHP', 'Java'],
-                    value='Javascript',
-                )
-                code = gr.Textbox(label='代码', lines=10, value=None)
-                with gr.Row():
-                    explain_code_btn = gr.Button('解释代码')
-                    optimize_code_btn = gr.Button('优化代码')
-                    debug_code_btn = gr.Button('错误修复')
-                    function_gen_btn = gr.Button('函数生成')
+                with gr.Accordion('代码助手', open=True):
+                    code_type = gr.Dropdown(
+                        label='代码类型',
+                        choices=['Javascript', 'Typescript', 'Python', 'C++', 'PHP', 'Java'],
+                        value='Javascript',
+                    )
+                    code = gr.Textbox(label='代码', lines=10, value=None)
+                    with gr.Row(variant='panel'):
+                        explain_code_btn = gr.Button('解释代码')
+                        optimize_code_btn = gr.Button('优化代码')
+                        debug_code_btn = gr.Button('错误修复')
+                        function_gen_btn = gr.Button('函数生成')
             explain_code_btn.click(fn=explain_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
             optimize_code_btn.click(fn=optimize_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
             debug_code_btn.click(fn=debug_code, inputs=[code_type, code, chat_engine], outputs=[code_result])
             function_gen_btn.click(fn=function_gen, inputs=[code_type, code, chat_engine], outputs=[code_result])
+
+    with gr.Tab('日常事务助手'):
+        chat_engine = gr.State(value=None)
+        with gr.Row():
+            with gr.Column(scale=2):
+                with gr.Row(variant="panel"):
+                    code_result = gr.Markdown(label='解释结果', value=None)
+            with gr.Column(scale=1):
+                with gr.Accordion('文档助手', open=True):
+                    with gr.Row():
+                        language_input = gr.Dropdown(
+                            label='输入语言',
+                            choices=['英语', '简体中文', '日语'],
+                            value='英语',
+                        )
+                        language_output = gr.Dropdown(
+                            label='输出语言',
+                            choices=['英语', '简体中文', '日语'],
+                            value='简体中文',
+                        )
+                    doc = gr.Textbox(label='文本', lines=10, value=None)
+                    with gr.Row(variant='panel'):
+                        translate_doc_btn = gr.Button('翻译文档')
+                        summarize_doc_btn = gr.Button('摘要提取')
+                        email_doc_btn = gr.Button('邮件撰写')
+                        doc_gen_btn = gr.Button('文档润色')
+            translate_doc_btn.click(fn=translate_doc, inputs=[language_input, language_output, doc, chat_engine], outputs=[code_result])
 
 
 app.launch(debug=settings.debug, show_api=False)
