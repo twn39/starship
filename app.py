@@ -1,7 +1,11 @@
 import gradio as gr
+from gradio import FileData
 from langchain_core.messages import HumanMessage, AIMessage
 from llm import DeepSeekLLM, OpenRouterLLM, TongYiLLM
 from config import settings
+import base64
+from PIL import Image
+import io
 
 
 deep_seek_llm = DeepSeekLLM(api_key=settings.deep_seek_api_key)
@@ -14,13 +18,28 @@ def init_chat():
 
 
 def predict(message, history, chat):
+    file_len = len(message.files)
     if chat is None:
         chat = init_chat()
     history_messages = []
     for human, assistant in history:
         history_messages.append(HumanMessage(content=human))
-        history_messages.append(AIMessage(content=assistant))
-    history_messages.append(HumanMessage(content=message.text))
+        if assistant is not None:
+            history_messages.append(AIMessage(content=assistant))
+
+    if file_len == 0:
+        history_messages.append(HumanMessage(content=message.text))
+    else:
+        file = message.files[0]
+        with Image.open(file.path) as img:
+            buffer = io.BytesIO()
+            img = img.convert('RGB')
+            img.save(buffer, format="JPEG")
+            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            history_messages.append(HumanMessage(content=[
+                {"type": "text", "text": message.text},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+            ]))
 
     response_message = ''
     for chunk in chat.stream(history_messages):
@@ -63,120 +82,48 @@ with gr.Blocks() as app:
 
                     @gr.render(inputs=provider)
                     def show_model_config_panel(_provider):
-                        if _provider == 'DeepSeek':
-                            with gr.Column():
-                                model = gr.Dropdown(
-                                    label='模型',
-                                    choices=deep_seek_llm.support_models,
-                                    value=deep_seek_llm.default_model
-                                )
-                                temperature = gr.Slider(
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.1,
-                                    value=deep_seek_llm.default_temperature,
-                                    label="Temperature",
-                                    key="temperature",
-                                )
-                                max_tokens = gr.Slider(
-                                    minimum=1024,
-                                    maximum=1024 * 20,
-                                    step=128,
-                                    value=deep_seek_llm.default_max_tokens,
-                                    label="Max Tokens",
-                                    key="max_tokens",
-                                )
-                            model.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
-                            temperature.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
-                            max_tokens.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
+                        _support_llm = deep_seek_llm
                         if _provider == 'OpenRouter':
-                            with gr.Column():
-                                model = gr.Dropdown(
-                                    label='模型',
-                                    choices=open_router_llm.support_models,
-                                    value=open_router_llm.default_model
-                                )
-                                temperature = gr.Slider(
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.1,
-                                    value=open_router_llm.default_temperature,
-                                    label="Temperature",
-                                    key="temperature",
-                                )
-                                max_tokens = gr.Slider(
-                                    minimum=1024,
-                                    maximum=1024 * 20,
-                                    step=128,
-                                    value=open_router_llm.default_max_tokens,
-                                    label="Max Tokens",
-                                    key="max_tokens",
-                                )
-                            model.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
-                            temperature.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
-                            max_tokens.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
-                            )
+                            _support_llm = open_router_llm
                         if _provider == 'Tongyi':
-                            with gr.Column():
-                                model = gr.Dropdown(
-                                    label='模型',
-                                    choices=tongyi_llm.support_models,
-                                    value=tongyi_llm.default_model
-                                )
-                                temperature = gr.Slider(
-                                    minimum=0.0,
-                                    maximum=1.0,
-                                    step=0.1,
-                                    value=tongyi_llm.default_temperature,
-                                    label="Temperature",
-                                    key="temperature",
-                                )
-                                max_tokens = gr.Slider(
-                                    minimum=1000,
-                                    maximum=2000,
-                                    step=100,
-                                    value=tongyi_llm.default_max_tokens,
-                                    label="Max Tokens",
-                                    key="max_tokens",
-                                )
-                            model.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
+                            _support_llm = tongyi_llm
+                        with gr.Column():
+                            model = gr.Dropdown(
+                                label='模型',
+                                choices=_support_llm.support_models,
+                                value=_support_llm.default_model
                             )
-                            temperature.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
+                            temperature = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.1,
+                                value=_support_llm.default_temperature,
+                                label="Temperature",
+                                key="temperature",
                             )
-                            max_tokens.change(
-                                fn=update_chat,
-                                inputs=[provider, chat_engine, model, temperature, max_tokens],
-                                outputs=[chat_engine],
+                            max_tokens = gr.Slider(
+                                minimum=1024,
+                                maximum=_support_llm.default_max_tokens,
+                                step=128,
+                                value=_support_llm.default_max_tokens,
+                                label="Max Tokens",
+                                key="max_tokens",
                             )
+                        model.change(
+                            fn=update_chat,
+                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            outputs=[chat_engine],
+                        )
+                        temperature.change(
+                            fn=update_chat,
+                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            outputs=[chat_engine],
+                        )
+                        max_tokens.change(
+                            fn=update_chat,
+                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            outputs=[chat_engine],
+                        )
 
 
 app.launch(debug=settings.debug, show_api=False)

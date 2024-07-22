@@ -55,11 +55,12 @@ class DeepSeekLLM(BaseLLM):
     _support_models = ['deepseek-chat', 'deepseek-coder']
     _base_url = 'https://api.deepseek.com/v1'
     _default_model = 'deepseek-chat'
+    _default_max_tokens = 4096
 
 
 class OpenRouterLLM(BaseLLM):
     _support_models = [
-        'anthropic/claude-3.5-sonnet', 'openai/gpt-4o',
+        'openai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet', 'openai/gpt-4o',
         'nvidia/nemotron-4-340b-instruct', 'deepseek/deepseek-coder',
         'google/gemini-flash-1.5', 'deepseek/deepseek-chat',
         'liuhaotian/llava-yi-34b', 'qwen/qwen-110b-chat',
@@ -68,10 +69,11 @@ class OpenRouterLLM(BaseLLM):
     ]
     _base_url = 'https://openrouter.ai/api/v1'
     _default_model = 'anthropic/claude-3.5-sonnet'
+    _default_max_tokens = 16 * 1024
 
 
 class TongYiLLM(BaseLLM):
     _support_models = ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long']
     _default_model = 'qwen-turbo'
     _base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-    _default_max_tokens: int = 2000
+    _default_max_tokens: int = 32 * 1024
