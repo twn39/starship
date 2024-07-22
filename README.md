@@ -1,8 +1,8 @@
 ---
-title: Starship
-emoji: 📊
-colorFrom: purple
-colorTo: gray
+title: startship
+emoji: 👁
+colorFrom: indigo
+colorTo: indigo
 sdk: gradio
 sdk_version: 4.38.1
 app_file: app.py
