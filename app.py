@@ -153,8 +153,8 @@ def translate_doc(_language_input, _language_output, _doc, _chat):
 
 
 with gr.Blocks() as app:
+    chat_engine = gr.State(value=None)
     with gr.Tab('智能聊天'):
-        chat_engine = gr.State(value=None)
         with gr.Row():
             with gr.Column(scale=2, min_width=600):
                 chatbot = gr.ChatInterface(
@@ -220,7 +220,6 @@ with gr.Blocks() as app:
                         )
 
     with gr.Tab('代码优化'):
-        chat_engine = gr.State(value=None)
         with gr.Row():
             with gr.Column(scale=2):
                 with gr.Row(variant="panel"):
@@ -244,7 +243,6 @@ with gr.Blocks() as app:
             function_gen_btn.click(fn=function_gen, inputs=[code_type, code, chat_engine], outputs=[code_result])
 
     with gr.Tab('职业工作'):
-        chat_engine = gr.State(value=None)
         with gr.Row():
             with gr.Column(scale=2):
                 with gr.Row(variant="panel"):
@@ -270,7 +268,8 @@ with gr.Blocks() as app:
                         doc_gen_btn = gr.Button('文档润色')
             translate_doc_btn.click(fn=translate_doc, inputs=[language_input, language_output, doc, chat_engine], outputs=[code_result])
     with gr.Tab('生活娱乐'):
-        chat_engine = gr.State(value=None)
+        with gr.Row():
+            gr.Button("test")
 
 
 app.launch(debug=settings.debug, show_api=False)
