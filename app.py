@@ -157,6 +157,62 @@ def translate_doc(_language_input, _language_output, _doc, _chat):
 
 with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
+    with gr.Accordion('模型参数设置', open=False):
+        with gr.Row():
+            provider = gr.Dropdown(
+                label='模型厂商',
+                choices=['DeepSeek', 'OpenRouter', 'Tongyi'],
+                value='DeepSeek',
+                info='不同模型厂商参数，效果和价格略有不同，请先设置好对应模型厂商的 API Key。',
+            )
+
+        @gr.render(inputs=provider)
+        def show_model_config_panel(_provider):
+            _support_llm = None
+            if _provider == 'OpenRouter':
+                _support_llm = open_router_llm
+            if _provider == 'Tongyi':
+                _support_llm = tongyi_llm
+            if _provider == 'DeepSeek':
+                _support_llm = deep_seek_llm
+            with gr.Row():
+                model = gr.Dropdown(
+                    label='模型',
+                    choices=_support_llm.support_models,
+                    value=_support_llm.default_model
+                )
+                temperature = gr.Slider(
+                    minimum=0.0,
+                    maximum=1.0,
+                    step=0.1,
+                    value=_support_llm.default_temperature,
+                    label="Temperature",
+                    key="temperature",
+                )
+                max_tokens = gr.Slider(
+                    minimum=512,
+                    maximum=_support_llm.default_max_tokens,
+                    step=128,
+                    value=_support_llm.default_max_tokens,
+                    label="Max Tokens",
+                    key="max_tokens",
+                )
+            model.change(
+                fn=update_chat,
+                inputs=[provider, model, temperature, max_tokens],
+                outputs=[chat_engine],
+            )
+            temperature.change(
+                fn=update_chat,
+                inputs=[provider, model, temperature, max_tokens],
+                outputs=[chat_engine],
+            )
+            max_tokens.change(
+                fn=update_chat,
+                inputs=[provider, model, temperature, max_tokens],
+                outputs=[chat_engine],
+            )
+
     with gr.Tab('智能聊天'):
         with gr.Row():
             with gr.Column(scale=2, min_width=600):
@@ -167,62 +223,8 @@ with gr.Blocks() as app:
                     textbox=gr.MultimodalTextbox(lines=1),
                     additional_inputs=[chat_engine]
                 )
-            with gr.Column(scale=1, min_width=300) as model_panel:
-                with gr.Accordion('模型参数设置', open=True):
-                    with gr.Column():
-                        provider = gr.Dropdown(
-                            label='模型厂商',
-                            choices=['DeepSeek', 'OpenRouter', 'Tongyi'],
-                            value='DeepSeek',
-                            info='不同模型厂商参数，效果和价格略有不同，请先设置好对应模型厂商的 API Key。',
-                        )
-
-                    @gr.render(inputs=provider)
-                    def show_model_config_panel(_provider):
-                        _support_llm = None
-                        if _provider == 'OpenRouter':
-                            _support_llm = open_router_llm
-                        if _provider == 'Tongyi':
-                            _support_llm = tongyi_llm
-                        if _provider == 'DeepSeek':
-                            _support_llm = deep_seek_llm
-                        with gr.Column():
-                            model = gr.Dropdown(
-                                label='模型',
-                                choices=_support_llm.support_models,
-                                value=_support_llm.default_model
-                            )
-                            temperature = gr.Slider(
-                                minimum=0.0,
-                                maximum=1.0,
-                                step=0.1,
-                                value=_support_llm.default_temperature,
-                                label="Temperature",
-                                key="temperature",
-                            )
-                            max_tokens = gr.Slider(
-                                minimum=512,
-                                maximum=_support_llm.default_max_tokens,
-                                step=128,
-                                value=_support_llm.default_max_tokens,
-                                label="Max Tokens",
-                                key="max_tokens",
-                            )
-                        model.change(
-                            fn=update_chat,
-                            inputs=[provider, model, temperature, max_tokens],
-                            outputs=[chat_engine],
-                        )
-                        temperature.change(
-                            fn=update_chat,
-                            inputs=[provider, model, temperature, max_tokens],
-                            outputs=[chat_engine],
-                        )
-                        max_tokens.change(
-                            fn=update_chat,
-                            inputs=[provider, model, temperature, max_tokens],
-                            outputs=[chat_engine],
-                        )
+            with gr.Column(scale=1, min_width=300):
+                gr.Radio(["无", "开发助手", "文案助手"], label="类型", info="请选择类型"),
 
     with gr.Tab('代码优化'):
         with gr.Row():
