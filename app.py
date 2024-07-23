@@ -17,6 +17,7 @@ def init_chat():
 
 
 def predict(message, history, chat):
+    print('!!!!!', message, history, chat)
     file_len = len(message.files)
     if chat is None:
         chat = init_chat()
