@@ -47,8 +47,9 @@ def predict(message, history, chat):
         yield response_message
 
 
-def update_chat(_provider: str, _chat, _model: str, _temperature: float, _max_tokens: int):
-    print('?????', _provider, _chat, _model, _temperature, _max_tokens)
+def update_chat(_provider: str, _model: str, _temperature: float, _max_tokens: int):
+    print('?????', _provider, _model, _temperature, _max_tokens)
+    _chat = None
     if _provider == 'DeepSeek':
         _chat = deep_seek_llm.get_chat_engine(model=_model, temperature=_temperature, max_tokens=_max_tokens)
     if _provider == 'OpenRouter':
@@ -59,6 +60,7 @@ def update_chat(_provider: str, _chat, _model: str, _temperature: float, _max_to
 
 
 def explain_code(_code_type: str, _code: str, _chat):
+    print('>>>>>???', _code_type, _code, _chat)
     if _chat is None:
         _chat = init_chat()
     chat_messages = [
@@ -177,11 +179,13 @@ with gr.Blocks() as app:
 
                     @gr.render(inputs=provider)
                     def show_model_config_panel(_provider):
-                        _support_llm = deep_seek_llm
+                        _support_llm = None
                         if _provider == 'OpenRouter':
                             _support_llm = open_router_llm
                         if _provider == 'Tongyi':
                             _support_llm = tongyi_llm
+                        if _provider == 'DeepSeek':
+                            _support_llm = deep_seek_llm
                         with gr.Column():
                             model = gr.Dropdown(
                                 label='模型',
@@ -197,7 +201,7 @@ with gr.Blocks() as app:
                                 key="temperature",
                             )
                             max_tokens = gr.Slider(
-                                minimum=1024,
+                                minimum=512,
                                 maximum=_support_llm.default_max_tokens,
                                 step=128,
                                 value=_support_llm.default_max_tokens,
@@ -206,17 +210,17 @@ with gr.Blocks() as app:
                             )
                         model.change(
                             fn=update_chat,
-                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            inputs=[provider, model, temperature, max_tokens],
                             outputs=[chat_engine],
                         )
                         temperature.change(
                             fn=update_chat,
-                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            inputs=[provider, model, temperature, max_tokens],
                             outputs=[chat_engine],
                         )
                         max_tokens.change(
                             fn=update_chat,
-                            inputs=[provider, chat_engine, model, temperature, max_tokens],
+                            inputs=[provider, model, temperature, max_tokens],
                             outputs=[chat_engine],
                         )
 

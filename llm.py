@@ -76,4 +76,4 @@ class TongYiLLM(BaseLLM):
     _support_models = ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long']
     _default_model = 'qwen-turbo'
     _base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-    _default_max_tokens: int = 32 * 1024
+    _default_max_tokens: int = 2000
