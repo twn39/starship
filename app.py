@@ -222,10 +222,13 @@ with gr.Blocks() as app:
                 chatbot = gr.ChatInterface(
                     predict,
                     chatbot=gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False),
-                    additional_inputs=[chat_engine]
+                    additional_inputs=[chat_engine],
                 )
             with gr.Column(scale=1, min_width=300):
-                gr.Radio(["无", "开发助手", "文案助手"], label="类型", info="请选择类型"),
+                with gr.Accordion("助手类型"):
+                    gr.Radio(["前端助手", "开发助手", "文案助手"], label="类型", info="请选择类型"),
+                with gr.Accordion("图片"):
+                    gr.ImageEditor()
 
     with gr.Tab('代码优化'):
         with gr.Row():
