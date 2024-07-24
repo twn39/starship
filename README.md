@@ -9,4 +9,24 @@ app_file: app.py
 pinned: false
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+
+## Starship 前端助手
+
+### 安装
+
+使用 pip：
+
+    pip install -r requirements.txt
+
+使用 [rye](https://rye.astral.sh/)：
+
+    rye sync
+    source .venv/bin/activate
+
+
+
+
+### 屏幕截图
+
+![screenshot](screenshot.png)
+
