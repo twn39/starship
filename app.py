@@ -6,6 +6,7 @@ import base64
 from PIL import Image
 import io
 from prompts import web_prompt
+from banner import banner_md
 
 
 deep_seek_llm = DeepSeekLLM(api_key=settings.deep_seek_api_key)
@@ -161,7 +162,7 @@ def translate_doc(_language_input, _language_output, _doc, _chat):
 with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
     with gr.Row(variant='panel'):
-        gr.Markdown("## 前端智能代码助手")
+        gr.Markdown(banner_md)
     with gr.Accordion('模型参数设置', open=False):
         with gr.Row():
             provider = gr.Dropdown(

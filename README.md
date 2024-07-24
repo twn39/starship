@@ -24,6 +24,10 @@ pinned: false
     source .venv/bin/activate
 
 
+支持的模型：
+[![DeepSeek](https://img.shields.io/badge/LLM-DeepSeek-blue)](https://deepseek.com/)
+[![通义](https://img.shields.io/badge/LLM-Tongyi-blue)](https://dashscope.aliyun.com/)
+[![OpenRouter](https://img.shields.io/badge/LLM-OpenRouter-blue)](https://openrouter.ai/)
 
 
 ### 屏幕截图
