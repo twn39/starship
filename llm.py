@@ -69,7 +69,7 @@ class OpenRouterLLM(BaseLLM):
     ]
     _base_url = 'https://openrouter.ai/api/v1'
     _default_model = 'anthropic/claude-3.5-sonnet'
-    _default_max_tokens = 16 * 1024
+    _default_max_tokens = 4096
 
 
 class TongYiLLM(BaseLLM):

@@ -5,7 +5,7 @@ from config import settings
 import base64
 from PIL import Image
 import io
-from prompts import web_prompt
+from prompts import web_prompt, explain_code_template
 from banner import banner_md
 
 
@@ -68,7 +68,7 @@ def explain_code(_code_type: str, _code: str, _chat):
     if _chat is None:
         _chat = get_default_chat()
     chat_messages = [
-        SystemMessage(content=f'你的任务是获取提供的代码片段，并用简单易懂的语言解释它。分解代码的功能、目的和关键组件。使用类比、示例和通俗术语，使解释对编码知识很少的人来说易于理解。除非绝对必要，否则避免使用技术术语，并为使用的任何术语提供清晰的解释。目标是帮助读者在高层次上理解代码的作用和工作原理。'),
+        SystemMessage(content=explain_code_template),
         HumanMessage(content=_code),
     ]
     response_message = ''
@@ -81,7 +81,7 @@ def optimize_code(_code_type: str, _code: str, _chat):
     if _chat is None:
         _chat = get_default_chat()
     chat_messages = [
-        SystemMessage(content=f'你的任务是分析提供的 {_code_type} 代码片段，并提出改进建议以优化其性能。确定可以使代码更高效、更快或更节省资源的地方。提供具体的优化建议，并解释这些更改如何提高代码的性能。优化后的代码应该保持与原始代码相同的功能，同时展示出更高的效率。'),
+        SystemMessage(content=f'你的任务是分析提供的 {_code_type} 代码片段，并提出改进建议以优化其性能。识别与检测代码异味、可读性、可维护性、性能、安全性等相关的潜在改进领域。不要列出给定代码中已经解决的问题。重点提供最多5个建设性建议，这些建议可以使代码更加健壮、高效或符合最佳实践。对于每个建议，简要解释潜在的好处。在列出任何建议后，总结是否发现了显著的机会来提高整体代码质量，或者代码是否普遍遵循了良好的设计原则。如果没有发现问题，请回复"没有错误"。'),
         HumanMessage(content=_code),
     ]
     response_message = ''
