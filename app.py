@@ -5,6 +5,7 @@ from config import settings
 import base64
 from PIL import Image
 import io
+from prompts import web_prompt
 
 
 deep_seek_llm = DeepSeekLLM(api_key=settings.deep_seek_api_key)
@@ -18,7 +19,7 @@ def init_chat():
 
 def predict(message, history, chat):
     print('!!!!!', message, history, chat)
-    file_len = len(message.files)
+    history_len = len(history)
     if chat is None:
         chat = init_chat()
     history_messages = []
@@ -27,19 +28,20 @@ def predict(message, history, chat):
         if assistant is not None:
             history_messages.append(AIMessage(content=assistant))
 
-    if file_len == 0:
-        history_messages.append(HumanMessage(content=message.text))
-    else:
-        file = message.files[0]
-        with Image.open(file.path) as img:
-            buffer = io.BytesIO()
-            img = img.convert('RGB')
-            img.save(buffer, format="JPEG")
-            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-            history_messages.append(HumanMessage(content=[
-                {"type": "text", "text": message.text},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-            ]))
+    if history_len == 0:
+        history_messages.append(SystemMessage(content=web_prompt))
+    history_messages.append(HumanMessage(content=message))
+    # else:
+    #     file = message.files[0]
+    #     with Image.open(file.path) as img:
+    #         buffer = io.BytesIO()
+    #         img = img.convert('RGB')
+    #         img.save(buffer, format="JPEG")
+    #         image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    #         history_messages.append(HumanMessage(content=[
+    #             {"type": "text", "text": message.text},
+    #             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+    #         ]))
 
     response_message = ''
     for chunk in chat.stream(history_messages):
@@ -60,7 +62,6 @@ def update_chat(_provider: str, _model: str, _temperature: float, _max_tokens: i
 
 
 def explain_code(_code_type: str, _code: str, _chat):
-    print('>>>>>???', _code_type, _code, _chat)
     if _chat is None:
         _chat = init_chat()
     chat_messages = [
@@ -157,6 +158,8 @@ def translate_doc(_language_input, _language_output, _doc, _chat):
 
 with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
+    with gr.Row(variant='panel'):
+        gr.Markdown("## 智能助手")
     with gr.Accordion('模型参数设置', open=False):
         with gr.Row():
             provider = gr.Dropdown(
@@ -218,9 +221,7 @@ with gr.Blocks() as app:
             with gr.Column(scale=2, min_width=600):
                 chatbot = gr.ChatInterface(
                     predict,
-                    multimodal=True,
                     chatbot=gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False),
-                    textbox=gr.MultimodalTextbox(lines=1),
                     additional_inputs=[chat_engine]
                 )
             with gr.Column(scale=1, min_width=300):
