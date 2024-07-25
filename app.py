@@ -40,7 +40,7 @@ def predict(message, history, chat):
 
     if history_len == 0:
         history_messages.append(SystemMessage(content=web_prompt))
-    history_messages.append(HumanMessage(content=message))
+    history_messages.append(HumanMessage(content=message.text))
     # else:
     #     file = message.files[0]
     #     with Image.open(file.path) as img:
@@ -197,6 +197,7 @@ with gr.Blocks() as app:
             with gr.Column(scale=2, min_width=600):
                 chatbot = gr.ChatInterface(
                     predict,
+                    multimodal=True,
                     chatbot=gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False),
                     additional_inputs=[chat_engine],
                 )
