@@ -30,6 +30,7 @@ def get_default_chat():
 def predict(message, history, chat):
     print('!!!!!', message, history, chat)
     history_len = len(history)
+    files_len = len(message.files)
     if chat is None:
         chat = get_default_chat()
     history_messages = []
@@ -40,18 +41,19 @@ def predict(message, history, chat):
 
     if history_len == 0:
         history_messages.append(SystemMessage(content=web_prompt))
-    history_messages.append(HumanMessage(content=message.text))
-    # else:
-    #     file = message.files[0]
-    #     with Image.open(file.path) as img:
-    #         buffer = io.BytesIO()
-    #         img = img.convert('RGB')
-    #         img.save(buffer, format="JPEG")
-    #         image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-    #         history_messages.append(HumanMessage(content=[
-    #             {"type": "text", "text": message.text},
-    #             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-    #         ]))
+    if files_len == 0:
+        history_messages.append(HumanMessage(content=message.text))
+    else:
+        file = message.files[0]
+        with Image.open(file.path) as img:
+            buffer = io.BytesIO()
+            img = img.convert('RGB')
+            img.save(buffer, format="JPEG")
+            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            history_messages.append(HumanMessage(content=[
+                {"type": "text", "text": message.text},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+            ]))
 
     response_message = ''
     for chunk in chat.stream(history_messages):
