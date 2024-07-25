@@ -11,23 +11,19 @@
 aiofiles==23.2.1
     # via gradio
 aiohttp==3.9.5
-    # via dashscope
     # via langchain
 aiosignal==1.3.1
     # via aiohttp
-altair==5.3.0
-    # via gradio
 annotated-types==0.7.0
     # via pydantic
 anyio==4.4.0
+    # via gradio
     # via httpx
     # via openai
     # via starlette
     # via watchfiles
 attrs==23.2.0
     # via aiohttp
-    # via jsonschema
-    # via referencing
 certifi==2024.7.4
     # via httpcore
     # via httpx
@@ -41,8 +37,6 @@ contourpy==1.2.1
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-dashscope==1.20.1
-    # via startship
 distro==1.9.0
     # via openai
 dnspython==2.6.1
@@ -65,9 +59,9 @@ frozenlist==1.4.1
 fsspec==2024.2.0
     # via gradio-client
     # via huggingface-hub
-gradio==4.38.1
+gradio==4.39.0
     # via startship
-gradio-client==1.1.0
+gradio-client==1.1.1
     # via gradio
 h11==0.14.0
     # via httpcore
@@ -93,26 +87,21 @@ idna==3.7
 importlib-resources==6.4.0
     # via gradio
 jinja2==3.1.4
-    # via altair
     # via fastapi
     # via gradio
 jsonpatch==1.33
     # via langchain-core
 jsonpointer==3.0.0
     # via jsonpatch
-jsonschema==4.23.0
-    # via altair
-jsonschema-specifications==2023.12.1
-    # via jsonschema
 kiwisolver==1.4.5
     # via matplotlib
-langchain==0.2.7
+langchain==0.2.11
     # via startship
-langchain-core==0.2.18
+langchain-core==0.2.23
     # via langchain
     # via langchain-openai
     # via langchain-text-splitters
-langchain-openai==0.1.16
+langchain-openai==0.1.17
     # via startship
 langchain-text-splitters==0.2.2
     # via langchain
@@ -132,7 +121,6 @@ multidict==6.0.5
     # via aiohttp
     # via yarl
 numpy==1.26.4
-    # via altair
     # via contourpy
     # via gradio
     # via langchain
@@ -145,14 +133,12 @@ orjson==3.10.6
     # via gradio
     # via langsmith
 packaging==24.1
-    # via altair
     # via gradio
     # via gradio-client
     # via huggingface-hub
     # via langchain-core
     # via matplotlib
 pandas==2.2.2
-    # via altair
     # via gradio
 pillow==10.4.0
     # via gradio
@@ -193,22 +179,15 @@ pyyaml==6.0.1
     # via langchain
     # via langchain-core
     # via uvicorn
-referencing==0.35.1
-    # via jsonschema
-    # via jsonschema-specifications
 regex==2024.5.15
     # via tiktoken
 requests==2.32.3
-    # via dashscope
     # via huggingface-hub
     # via langchain
     # via langsmith
     # via tiktoken
 rich==13.7.1
     # via typer
-rpds-py==0.19.0
-    # via jsonschema
-    # via referencing
 ruff==0.5.1
     # via gradio
 semantic-version==2.10.0
@@ -234,8 +213,6 @@ tiktoken==0.7.0
     # via langchain-openai
 tomlkit==0.12.0
     # via gradio
-toolz==0.12.1
-    # via altair
 tqdm==4.66.4
     # via huggingface-hub
     # via openai
@@ -266,8 +243,6 @@ uvloop==0.19.0
     # via uvicorn
 watchfiles==0.22.0
     # via uvicorn
-websocket-client==1.8.0
-    # via dashscope
 websockets==11.0.3
     # via gradio-client
     # via uvicorn

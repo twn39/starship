@@ -41,19 +41,21 @@ def predict(message, history, chat):
 
     if history_len == 0:
         history_messages.append(SystemMessage(content=web_prompt))
-    if files_len == 0:
-        history_messages.append(HumanMessage(content=message.text))
-    else:
-        file = message.files[0]
-        with Image.open(file.path) as img:
-            buffer = io.BytesIO()
-            img = img.convert('RGB')
-            img.save(buffer, format="JPEG")
-            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-            history_messages.append(HumanMessage(content=[
-                {"type": "text", "text": message.text},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-            ]))
+
+    history_messages.append(HumanMessage(content=message.text))
+    # if files_len == 0:
+    #     history_messages.append(HumanMessage(content=message.text))
+    # else:
+    #     file = message.files[0]
+    #     with Image.open(file.path) as img:
+    #         buffer = io.BytesIO()
+    #         img = img.convert('RGB')
+    #         img.save(buffer, format="JPEG")
+    #         image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    #         history_messages.append(HumanMessage(content=[
+    #             {"type": "text", "text": message.text},
+    #             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+    #         ]))
 
     response_message = ''
     for chunk in chat.stream(history_messages):
@@ -201,6 +203,7 @@ with gr.Blocks() as app:
                     predict,
                     multimodal=True,
                     chatbot=gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False),
+                    textbox=gr.MultimodalTextbox(interactive=True, file_types=["image"]),
                     additional_inputs=[chat_engine],
                 )
             with gr.Column(scale=1, min_width=300):
