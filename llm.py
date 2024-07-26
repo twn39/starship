@@ -60,9 +60,10 @@ class DeepSeekLLM(BaseLLM):
 
 class OpenRouterLLM(BaseLLM):
     _support_models = [
-        'openai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet', 'openai/gpt-4o',
-        'nvidia/nemotron-4-340b-instruct', 'deepseek/deepseek-coder',
-        'google/gemini-flash-1.5', 'deepseek/deepseek-chat',
+        'openai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet',
+        'mistralai/mistral-large', 'meta-llama/llama-3.1-405b-instruct', 'openai/gpt-4o',
+        'nvidia/nemotron-4-340b-instruct', 'deepseek/deepseek-coder', '01-ai/yi-large',
+        'google/gemini-flash-1.5', 'deepseek/deepseek-chat', 'qwen/qwen-2-72b-instruct',
         'liuhaotian/llava-yi-34b', 'qwen/qwen-110b-chat',
         'qwen/qwen-72b-chat', 'google/gemini-pro-1.5',
         'cohere/command-r-plus', 'anthropic/claude-3-haiku',
