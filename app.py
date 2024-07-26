@@ -5,7 +5,7 @@ from config import settings
 import base64
 from PIL import Image
 import io
-from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template
+from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template, backend_developer_prompt
 from banner import banner_md
 from langchain_core.prompts import PromptTemplate
 
@@ -27,8 +27,8 @@ def get_default_chat():
     return _llm.get_chat_engine()
 
 
-def predict(message, history, chat):
-    print('!!!!!', message, history, chat)
+def predict(message, history, chat, _current_assistant):
+    print('!!!!!', message, history, chat, _current_assistant)
     history_len = len(history)
     files_len = len(message.files)
     if chat is None:
@@ -40,22 +40,24 @@ def predict(message, history, chat):
             history_messages.append(AIMessage(content=assistant))
 
     if history_len == 0:
-        history_messages.append(SystemMessage(content=web_prompt))
+        assistant_prompt = web_prompt
+        if _current_assistant == '后端开发助手':
+            assistant_prompt = backend_developer_prompt
+        history_messages.append(SystemMessage(content=assistant_prompt))
 
-    history_messages.append(HumanMessage(content=message.text))
-    # if files_len == 0:
-    #     history_messages.append(HumanMessage(content=message.text))
-    # else:
-    #     file = message.files[0]
-    #     with Image.open(file.path) as img:
-    #         buffer = io.BytesIO()
-    #         img = img.convert('RGB')
-    #         img.save(buffer, format="JPEG")
-    #         image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-    #         history_messages.append(HumanMessage(content=[
-    #             {"type": "text", "text": message.text},
-    #             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-    #         ]))
+    if files_len == 0:
+        history_messages.append(HumanMessage(content=message.text))
+    else:
+        file = message.files[0]
+        with Image.open(file.path) as img:
+            buffer = io.BytesIO()
+            img = img.convert('RGB')
+            img.save(buffer, format="JPEG")
+            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            history_messages.append(HumanMessage(content=[
+                {"type": "text", "text": message.text},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+            ]))
 
     response_message = ''
     for chunk in chat.stream(history_messages):
@@ -142,8 +144,13 @@ def translate_doc(_language_input, _language_output, _doc, _chat):
         yield response_message
 
 
+def assistant_type_update(_assistant_type: str):
+    return _assistant_type, [], []
+
+
 with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
+    current_assistant = gr.State(value='前端开发助手')
     with gr.Row(variant='panel'):
         gr.Markdown(banner_md)
     with gr.Accordion('模型参数设置', open=False):
@@ -199,18 +206,22 @@ with gr.Blocks() as app:
     with gr.Tab('智能聊天'):
         with gr.Row():
             with gr.Column(scale=2, min_width=600):
-                chatbot = gr.ChatInterface(
+                chatbot = gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False, type='messages')
+                chat_interface = gr.ChatInterface(
                     predict,
+                    type="messages",
                     multimodal=True,
-                    chatbot=gr.Chatbot(elem_id="chatbot", height=600, show_share_button=False),
+                    chatbot=chatbot,
                     textbox=gr.MultimodalTextbox(interactive=True, file_types=["image"]),
-                    additional_inputs=[chat_engine],
+                    additional_inputs=[chat_engine, current_assistant],
+                    clear_btn='🗑️ 清空',
+                    undo_btn='↩️ 撤销',
+                    retry_btn='🔄 重试',
                 )
             with gr.Column(scale=1, min_width=300):
                 with gr.Accordion("助手类型"):
-                    gr.Radio(["前端助手", "开发助手", "文案助手"], label="类型", info="请选择类型"),
-                with gr.Accordion("图片"):
-                    gr.ImageEditor()
+                    assistant_type = gr.Radio(["前端开发助手", "后端开发助手", "数据分析师"], label="类型", info="请选择类型", value='前端开发助手')
+                assistant_type.change(fn=assistant_type_update, inputs=[assistant_type], outputs=[current_assistant, chat_interface.chatbot_state, chatbot])
 
     with gr.Tab('代码优化'):
         with gr.Row():
