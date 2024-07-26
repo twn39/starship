@@ -5,7 +5,7 @@ from config import settings
 import base64
 from PIL import Image
 import io
-from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template, backend_developer_prompt
+from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template, backend_developer_prompt, analyst_prompt
 from banner import banner_md
 from langchain_core.prompts import PromptTemplate
 
@@ -43,6 +43,8 @@ def predict(message, history, chat, _current_assistant):
         assistant_prompt = web_prompt
         if _current_assistant == '后端开发助手':
             assistant_prompt = backend_developer_prompt
+        if _current_assistant == '数据分析师':
+            assistant_prompt = analyst_prompt
         history_messages.append(SystemMessage(content=assistant_prompt))
 
     if files_len == 0:
