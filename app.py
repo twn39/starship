@@ -6,8 +6,10 @@ import base64
 from PIL import Image
 import io
 from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template, backend_developer_prompt, analyst_prompt
-from banner import banner_md
 from langchain_core.prompts import PromptTemplate
+from log import logging
+
+logger = logging.getLogger(__name__)
 
 
 deep_seek_llm = DeepSeekLLM(api_key=settings.deepseek_api_key)
@@ -27,8 +29,8 @@ def get_default_chat():
     return _llm.get_chat_engine()
 
 
-def predict(message, history, _chat, _current_assistant):
-    print('!!!!!', message, history, _chat, _current_assistant)
+def predict(message, history, _chat, _current_assistant: str):
+    logger.info(f"chat predict: {message}, {history}, {_chat}, {_current_assistant}")
     files_len = len(message.files)
     if _chat is None:
         _chat = get_default_chat()
@@ -60,6 +62,7 @@ def predict(message, history, _chat, _current_assistant):
                 {"type": "text", "text": message.text},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
             ]))
+    logger.info(f"chat history: {_lc_history}")
 
     response_message = ''
     for chunk in _chat.stream(_lc_history):
@@ -68,7 +71,6 @@ def predict(message, history, _chat, _current_assistant):
 
 
 def update_chat(_provider: str, _model: str, _temperature: float, _max_tokens: int):
-    print('?????', _provider, _model, _temperature, _max_tokens)
     _config_llm = provider_model_map[_provider]
     return _config_llm.get_chat_engine(model=_model, temperature=_temperature, max_tokens=_max_tokens)
 
@@ -154,7 +156,7 @@ with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
     current_assistant = gr.State(value='前端开发助手')
     with gr.Row(variant='panel'):
-        gr.Markdown(banner_md)
+        gr.Markdown("## 智能编出助手")
     with gr.Accordion('模型参数设置', open=False):
         with gr.Row():
             provider = gr.Dropdown(
