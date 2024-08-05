@@ -2,12 +2,11 @@ import gradio as gr
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from llm import DeepSeekLLM, OpenRouterLLM, TongYiLLM
 from config import settings
-import base64
-from PIL import Image
-import io
 from prompts import web_prompt, explain_code_template, optimize_code_template, debug_code_template, function_gen_template, translate_doc_template, backend_developer_prompt, analyst_prompt
 from langchain_core.prompts import PromptTemplate
 from log import logging
+from utils import convert_image_to_base64
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +21,11 @@ provider_model_map = dict(
     Tongyi=tongyi_llm,
 )
 
+support_vision_models = [
+    'openai/gpt-4o-mini', 'anthropic/claude-3.5-sonnet', 'google/gemini-pro-1.5-exp',
+    'openai/gpt-4o', 'google/gemini-flash-1.5', 'liuhaotian/llava-yi-34b', 'anthropic/claude-3-haiku',
+]
+
 
 def get_default_chat():
     default_provider = settings.default_provider
@@ -34,8 +38,11 @@ def predict(message, history, _chat, _current_assistant: str):
     files_len = len(message.files)
     if _chat is None:
         _chat = get_default_chat()
-    _lc_history = []
+    if files_len > 0:
+        if _chat.model_name not in support_vision_models:
+            raise gr.Error("当前模型不支持图片，请更换模型。")
 
+    _lc_history = []
     assistant_prompt = web_prompt
     if _current_assistant == '后端开发助手':
         assistant_prompt = backend_developer_prompt
@@ -45,7 +52,8 @@ def predict(message, history, _chat, _current_assistant: str):
 
     for his_msg in history:
         if his_msg['role'] == 'user':
-            _lc_history.append(HumanMessage(content=his_msg['content']))
+            if not hasattr(his_msg['content'], 'file'):
+                _lc_history.append(HumanMessage(content=his_msg['content']))
         if his_msg['role'] == 'assistant':
             _lc_history.append(AIMessage(content=his_msg['content']))
 
@@ -53,15 +61,12 @@ def predict(message, history, _chat, _current_assistant: str):
         _lc_history.append(HumanMessage(content=message.text))
     else:
         file = message.files[0]
-        with Image.open(file.path) as img:
-            buffer = io.BytesIO()
-            img = img.convert('RGB')
-            img.save(buffer, format="JPEG")
-            image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-            _lc_history.append(HumanMessage(content=[
-                {"type": "text", "text": message.text},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-            ]))
+        image_data = convert_image_to_base64(file)
+        _lc_history.append(HumanMessage(content=[
+            {"type": "text", "text": message.text},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+        ]))
+
     logger.info(f"chat history: {_lc_history}")
 
     response_message = ''
@@ -275,9 +280,6 @@ with gr.Blocks() as app:
                         email_doc_btn = gr.Button('邮件撰写')
                         doc_gen_btn = gr.Button('文档润色')
             translate_doc_btn.click(fn=translate_doc, inputs=[language_input, language_output, doc, chat_engine], outputs=[code_result])
-    with gr.Tab('生活娱乐'):
-        with gr.Row():
-            gr.Button("test")
 
 
 app.launch(debug=settings.debug, show_api=False)
