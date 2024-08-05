@@ -27,28 +27,28 @@ def get_default_chat():
     return _llm.get_chat_engine()
 
 
-def predict(message, history, chat, _current_assistant):
-    print('!!!!!', message, history, chat, _current_assistant)
-    history_len = len(history)
+def predict(message, history, _chat, _current_assistant):
+    print('!!!!!', message, history, _chat, _current_assistant)
     files_len = len(message.files)
-    if chat is None:
-        chat = get_default_chat()
-    history_messages = []
-    for human, assistant in history:
-        history_messages.append(HumanMessage(content=human))
-        if assistant is not None:
-            history_messages.append(AIMessage(content=assistant))
+    if _chat is None:
+        _chat = get_default_chat()
+    _lc_history = []
 
-    if history_len == 0:
-        assistant_prompt = web_prompt
-        if _current_assistant == '后端开发助手':
-            assistant_prompt = backend_developer_prompt
-        if _current_assistant == '数据分析师':
-            assistant_prompt = analyst_prompt
-        history_messages.append(SystemMessage(content=assistant_prompt))
+    assistant_prompt = web_prompt
+    if _current_assistant == '后端开发助手':
+        assistant_prompt = backend_developer_prompt
+    if _current_assistant == '数据分析师':
+        assistant_prompt = analyst_prompt
+    _lc_history.append(SystemMessage(content=assistant_prompt))
+
+    for his_msg in history:
+        if his_msg['role'] == 'user':
+            _lc_history.append(HumanMessage(content=his_msg['content']))
+        if his_msg['role'] == 'assistant':
+            _lc_history.append(AIMessage(content=his_msg['content']))
 
     if files_len == 0:
-        history_messages.append(HumanMessage(content=message.text))
+        _lc_history.append(HumanMessage(content=message.text))
     else:
         file = message.files[0]
         with Image.open(file.path) as img:
@@ -56,13 +56,13 @@ def predict(message, history, chat, _current_assistant):
             img = img.convert('RGB')
             img.save(buffer, format="JPEG")
             image_data = base64.b64encode(buffer.getvalue()).decode("utf-8")
-            history_messages.append(HumanMessage(content=[
+            _lc_history.append(HumanMessage(content=[
                 {"type": "text", "text": message.text},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
             ]))
 
     response_message = ''
-    for chunk in chat.stream(history_messages):
+    for chunk in _chat.stream(_lc_history):
         response_message = response_message + chunk.content
         yield response_message
 
