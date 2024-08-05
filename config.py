@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    deep_seek_api_key: str
+    deepseek_api_key: str
     open_router_api_key: str
     tongyi_api_key: str
     debug: bool

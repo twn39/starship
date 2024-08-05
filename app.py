@@ -10,7 +10,7 @@ from banner import banner_md
 from langchain_core.prompts import PromptTemplate
 
 
-deep_seek_llm = DeepSeekLLM(api_key=settings.deep_seek_api_key)
+deep_seek_llm = DeepSeekLLM(api_key=settings.deepseek_api_key)
 open_router_llm = OpenRouterLLM(api_key=settings.open_router_api_key)
 tongyi_llm = TongYiLLM(api_key=settings.tongyi_api_key)
 
