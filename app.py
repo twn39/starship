@@ -242,7 +242,7 @@ with gr.Blocks() as app:
                     code_type = gr.Dropdown(
                         label='代码类型',
                         choices=['Javascript', 'Typescript', 'Python', "GO", 'C++', 'PHP', 'Java', 'C#', "C", "Kotlin", "Bash"],
-                        value='Javascript',
+                        value='Typescript',
                     )
                     code = gr.Textbox(label='代码', lines=10, value=None)
                     with gr.Row(variant='panel'):

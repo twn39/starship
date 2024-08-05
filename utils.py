@@ -3,7 +3,7 @@ from PIL import Image
 import io
 
 
-def convert_image_to_base64(file):
+def convert_image_to_base64(file) -> str:
     with Image.open(file.path) as img:
         buffer = io.BytesIO()
         img = img.convert('RGB')
