@@ -161,7 +161,7 @@ with gr.Blocks() as app:
     chat_engine = gr.State(value=None)
     current_assistant = gr.State(value='前端开发助手')
     with gr.Row(variant='panel'):
-        gr.Markdown("## 智能编出助手")
+        gr.Markdown("## 智能编程助手")
     with gr.Accordion('模型参数设置', open=False):
         with gr.Row():
             provider = gr.Dropdown(
